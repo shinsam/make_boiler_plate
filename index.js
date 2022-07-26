@@ -45,4 +45,37 @@ app.post('/api/users/register' , (req,res)=>{
         
     })
 })
+
+//login 라우터 작성
+app.post('/api/users/login' , (req, res)=>{
+    //find email
+    User.findOne({email:req.body.email}, (err,user)=>{
+        if(!user){
+            console.log("email not found")
+            return res.json({
+                loginSuccess:false,
+                message:"Auth Failede, email not found"
+            });
+        }
+        console.log("user email found")    
+        user.comparePassword(req.body.password, (err,isMatch) =>{
+            if(!isMatch){
+                console.log("password wrong")
+                return res.json({
+                    loginSuccess:false,
+                    message:"Wrong password"
+                })
+            }
+            console.log("password OK")
+        })
+        
+        
+        //generate Token : user.js에 정의되어있다. 
+        //파라메터는 cb(err, user) 형식을 따른다.
+        user.generateToken((err, user) =>{
+           if(err)     return res.status(400).send(err)
+           res.cookie("x_auth" , user.token).status(200).json({loginSuccess: true})
+        })
+    })
+})
 app.listen(5000);
