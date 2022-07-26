@@ -32,14 +32,17 @@ app.get("/", (req,res)=>{
 app.post('/api/users/register' , (req,res)=>{
     console.log("post req:%s" , req.body );
     
-    const user_temp = new User(req.body)
-
-    user_temp.save((err, userData)=>{
+    const user = new User(req.body)
+    //user.js에서 pre('save')를 이용해서 req로 넘어온 passwd를 encrypt 한다.
+    // so, mongoDB에 save되는 것은 암호화된 비번이다.
+    user.save((err, doc)=>{
         if(err) 
             return res.json({success:false , err})
-    })
-    return res.status(200).json({
-        success:true
+        return res.status(200).json({
+                success:true,
+                userData: doc
+            })
+        
     })
 })
 app.listen(5000);
