@@ -64,8 +64,14 @@ userSchema.pre('save', function( next){  //mongoose api
     }
 });
 
+//https://www.npmjs.com/package/bcrypt
 //Schema.prototype.method() 이용 comparePassword 라는 메소드 정의
 userSchema.methods.comparePassword = function(plainPassword, cb){
+    //아래의 this는 index.js에서 comparePassword를 호출한 findedUser를 말함
+    //즉 email정보를 가지고 db에서 얻어온 개체이므로 passwd는 이미 암호화 된 상태임
+    //bcrypt의 compare API : compare(data, encrypted, cb)
+    console.log("comparePassword22 : " + this.password)
+    
     bcrypt.compare(plainPassword, this.password, function(err, isMatch){
         if( err ) return cb(err);
         cb(null, isMatch)
@@ -84,6 +90,18 @@ userSchema.methods.generateToken  = function(cb){
         cb(null, user)    
     })
 }
+//왜 statics???
+userSchema.statics.findByToken = function(token, cb){
+    var user = this;
+    jsonwebtoken.verify(token, 'secret', function(err, decode){
+        user.findOne({"_id":decode , "token":token}, function(err,user){
+            if(err) return cb(err);
+            cb(null, user );
+        })
+    })
+}
+
+
 
 //위의 스키마를 이용한 모델을 생성한다.
 const User = mongoose.model('User' ,userSchema )
