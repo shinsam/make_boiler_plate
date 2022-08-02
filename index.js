@@ -13,7 +13,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 //data model------------------------------------
 const {User} =  require('./models/user');
-
+const {auth} = require("./middleware/auth")
 
 mongoose.connect(config.mongoURI ,{useNewUrlParser: true})
     .then(()=>console.log('DB Connected'))
@@ -28,6 +28,17 @@ app.get("/", (req,res)=>{
     res.send("Hello hi~~~~~~");
 });
 
+
+app.get("/api/users/auth", auth, (req,res)=>{
+    res.status(200).json({
+        _id:req._id , 
+        isAuth : true,
+        email:req.user.email,
+        name:req.user.name,
+        lastname:req.user.lastname,
+        role:req.user.role
+    })
+})
 
 app.post('/api/users/register' , (req,res)=>{
     console.log("post req:%s" , req.body );
@@ -49,8 +60,8 @@ app.post('/api/users/register' , (req,res)=>{
 //login 라우터 작성
 app.post('/api/users/login' , (req, res)=>{
     //find email
-    User.findOne({email:req.body.email}, (err,user)=>{
-        if(!user){
+    User.findOne({email:req.body.email}, (err,findedUser)=>{
+        if(!findedUser){
             console.log("email not found")
             return res.json({
                 loginSuccess:false,
@@ -58,7 +69,8 @@ app.post('/api/users/login' , (req, res)=>{
             });
         }
         console.log("user email found")    
-        user.comparePassword(req.body.password, (err,isMatch) =>{
+        console.log("comparePassword11 : " + findedUser.password)
+        findedUser.comparePassword(req.body.password, (err,isMatch) =>{
             if(!isMatch){
                 console.log("password wrong")
                 return res.json({
@@ -72,7 +84,7 @@ app.post('/api/users/login' , (req, res)=>{
         
         //generate Token : user.js에 정의되어있다. 
         //파라메터는 cb(err, user) 형식을 따른다.
-        user.generateToken((err, user) =>{
+        findedUser.generateToken((err, user) =>{
            if(err)     return res.status(400).send(err)
            res.cookie("x_auth" , user.token).status(200).json({loginSuccess: true})
         })
