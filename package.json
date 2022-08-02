@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "backend": "nodemon index.js"
+    "start": "node Server/index.js",
+    "backend": "nodemon Server/index.js"
   },
   "author": "",
   "license": "ISC",
